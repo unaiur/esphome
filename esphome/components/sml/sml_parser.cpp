@@ -75,8 +75,7 @@ bool SmlFile::setup_node(std::vector<SmlNode> &nodes) {
   return true;
 }
 
-std::vector<ObisInfo> SmlFile::get_obis_info() {
-  std::vector<ObisInfo> obis_info;
+void SmlFile::for_each_obis_info(const std::function<void(const ObisInfo &)> &callback) {
   for (auto const &message : messages) {
     auto message_body = message.nodes[3];
     auto message_type = bytes_to_uint(message_body.nodes[0].value_bytes);
@@ -88,10 +87,9 @@ std::vector<ObisInfo> SmlFile::get_obis_info() {
     auto val_list = get_list_response.nodes[4];
 
     for (auto const &val_list_entry : val_list.nodes) {
-      obis_info.emplace_back(server_id, val_list_entry);
+      callback(ObisInfo(server_id, val_list_entry));
     }
   }
-  return obis_info;
 }
 
 std::string bytes_repr(const byte_span &buffer) {

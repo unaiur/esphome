@@ -41,7 +41,7 @@ class SmlFile {
   SmlFile(byte_span const &buffer);
   bool setup_node(std::vector<SmlNode> &nodes);
   std::vector<SmlNode> messages;
-  std::vector<ObisInfo> get_obis_info();
+  void for_each_obis_info(const std::function<void(const ObisInfo &)> &callback);
 
  protected:
   const byte_span buffer_;

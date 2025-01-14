@@ -67,31 +67,12 @@ void Sml::add_on_data_callback(std::function<void(std::vector<uint8_t>, bool)> &
 }
 
 void Sml::process_sml_file_(const byte_span &sml_data) {
-  SmlFile sml_file = SmlFile(sml_data);
-  std::vector<ObisInfo> obis_info = sml_file.get_obis_info();
-  this->publish_obis_info_(obis_info);
-
-  this->log_obis_info_(obis_info);
-}
-
-void Sml::log_obis_info_(const std::vector<ObisInfo> &obis_info_vec) {
-  ESP_LOGD(TAG, "OBIS info:");
-  for (auto const &obis_info : obis_info_vec) {
-    std::string info;
-    info += "  (" + bytes_repr(obis_info.server_id) + ") ";
-    info += obis_info.code_repr();
-    info += " [0x" + bytes_repr(obis_info.value) + "]";
-    ESP_LOGD(TAG, "%s", info.c_str());
-  }
-}
-
-void Sml::publish_obis_info_(const std::vector<ObisInfo> &obis_info_vec) {
-  for (auto const &obis_info : obis_info_vec) {
-    this->publish_value_(obis_info);
-  }
+  SmlFile(sml_data).for_each_obis_info([this](const ObisInfo &obis_info) { this->publish_value_(obis_info); });
 }
 
 void Sml::publish_value_(const ObisInfo &obis_info) {
+  ESP_LOGD(TAG, "OBIS (%s) %s [0x%s]", bytes_repr(obis_info.server_id).c_str(), obis_info.code_repr().c_str(),
+           bytes_repr(obis_info.value).c_str());
   for (auto const &sml_listener : sml_listeners_) {
     if ((!sml_listener->server_id.empty()) && (bytes_repr(obis_info.server_id) != sml_listener->server_id))
       continue;
